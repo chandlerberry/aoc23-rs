@@ -4,7 +4,7 @@ use std::path::Path;
 
 /*
 Function Signature:
-- read_lines is decleard, with generic type parameter "P"
+- read_lines is declared, with generic type parameter "P"
 - Takes one argument of filename, type "P"
 
 Return Type "io::Result<io::Lines<io::BufReader<File>>>":
@@ -46,20 +46,57 @@ Solution:
     - cast the string of two numbers combined together to an int, and add that value to the sum
 - return the final sum after all the calibration values are
 */
-fn part_one(input: Vec<String>) -> i32 {
+fn part_one(input: &Vec<String>) -> i32 {
+    let numbers = "0123456789";
+    let mut calibrations: Vec<i32> = (0..input.len()).map(|_| 0).collect();
+    let mut sum = 0;
+
+    // consume the initial input
+    for (line_index, line) in input.iter().enumerate() {
+        let mut cal = String::new();
+
+        for (char_index, character) in line.chars().enumerate() {
+            if cal.len() == 2 {
+                if numbers.contains(&character.to_string()) {
+                    cal.replace_range(1..2, &character.to_string());
+                }
+            } else if numbers.contains(&character.to_string()) {
+                cal = cal + &character.to_string();
+            }
+
+            if (cal.len() == 1) && (char_index + 1 == line.len()) {
+                let temp = cal.clone();
+                cal = cal + &temp;
+            }
+        }
+
+        let cal_int = cal.parse::<i32>().unwrap();
+        calibrations[line_index] = cal_int;
+    }
+
+    for calibration_value in calibrations {
+        sum = sum + calibration_value;
+    }
+
+    return sum;
+}
+
+fn part_two(input: &Vec<String>) -> i32 {
     input.len() as i32
 }
 
-// reads in file line by line, passes input as Vec<String> and
 pub fn run(file: &str) {
     let input_file = Path::new(file);
     let lines = read_lines(input_file).expect("failed to read input");
 
     let input = lines
+        // anonymous function handling any errors during parsing, collects lines as a vector of strings
         .map(|line| line.expect("could not parse line"))
         .collect::<Vec<String>>();
 
-    let result = part_one(input);
+    let result_one = part_one(&input);
+    let result_two = part_two(&input);
 
-    println!("Part 1 Result: {}", result);
+    println!("Day 1 Part 1 Result: {}", result_one);
+    println!("Day 1 Part 2 Result: {}", result_two);
 }

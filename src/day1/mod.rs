@@ -40,16 +40,17 @@ Solution:
 - declare an integer "sum", initialized at 0
 - loop over each line read in from the file
     - loop over each charater in string
+    - create empty string "cal", where the calibration value gets assembled
     - match each char to an integer value of 0-9
         - if no matches found, go to next char
         - if match found, save in str that is size 2, with the first char in the str
+        - if all characters have been iterated through and the length string is still only 1, add that string to itself
     - cast the string of two numbers combined together to an int, and add that value to the sum
 - return the final sum after all the calibration values are
 */
 fn part_one(input: &Vec<String>) -> i32 {
     let numbers = "0123456789";
     let mut calibrations: Vec<i32> = (0..input.len()).map(|_| 0).collect();
-    let mut sum = 0;
 
     // consume the initial input
     for (line_index, line) in input.iter().enumerate() {
@@ -73,14 +74,32 @@ fn part_one(input: &Vec<String>) -> i32 {
         let cal_int = cal.parse::<i32>().unwrap();
         calibrations[line_index] = cal_int;
     }
-
-    for calibration_value in calibrations {
-        sum = sum + calibration_value;
-    }
-
-    return sum;
+    calibrations.iter().sum()
 }
 
+/*
+Problem:
+- Some digits of the calibration values are actually spelled out, not numbers
+- Need to find the sum of all calibration values from each line, like above
+
+Solution:
+- read in file line by line
+- declare an integer "sum", initialize at 0
+- loop over each line in file
+    - create empty string "cal", where the calibration value gets assembled
+    - create empty string "assemble_number_string", where the calibration value gets assembled
+    - loop over each character in string
+        - assemble a string for each consecutive character, until it spells out a number, e.g. "two"
+            - if the string forms the spelling of a number, add the numerical equivalent to "cal"
+        - if the character is a number, add it to "cal"
+        - if the length of string "cal is two", keep replacing the second item with the next numberical value until the line ends
+    - cast the discoved calibration value as an int
+    - populate the vector of ints that will be summed together at the same index of the current line in the loop with the calibration int, like so:
+        let cal_int = cal.parse::<i32>().unwrap();
+        calibrations[line_index] = cal_int;
+- add all ints in calibrations vector together
+- return the sum as the answer
+*/
 fn part_two(input: &Vec<String>) -> i32 {
     input.len() as i32
 }

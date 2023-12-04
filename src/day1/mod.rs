@@ -57,16 +57,22 @@ fn string_has_number(input_string: &str) -> bool {
     let numbers = vec![
         "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
     ];
-    numbers.contains(&input_string)
+
+    for n in numbers {
+        if input_string.contains(n) {
+            return true;
+        }
+    }
+    false
 }
 
 fn convert_to_number(input_string: &str) -> &str {
     let numbers = vec![
         "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
     ];
+
     for n in numbers {
-        if n.contains(&input_string) {
-            println!("{}", DIGITS.get(&n).unwrap());
+        if input_string.contains(n) {
             return DIGITS.get(&n).unwrap();
         }
     }
@@ -160,19 +166,20 @@ fn part_two(input: &Vec<String>) -> i32 {
                 if cal.len() <= 1 {
                     cal = cal + &character.to_string();
                 }
+            }
+
             // if character is not numeric, implement new logic to handle the creation of a
-            } else {
+            if character.is_alphabetic() {
                 find_value = find_value + &character.to_string();
                 if string_has_number(&find_value) {
                     let dumb_find_value = find_value.clone();
                     let digit = convert_to_number(&dumb_find_value);
-                    find_value.clear();
                     if cal.len() == 2 {
                         cal.replace_range(1..2, &digit.to_string());
-                    }
-                    if cal.len() <= 1 {
+                    } else if cal.len() <= 1 {
                         cal = cal + &digit.to_string();
                     }
+                    find_value.clear();
                 }
             }
 
@@ -181,14 +188,14 @@ fn part_two(input: &Vec<String>) -> i32 {
                 cal = cal + &temp;
             }
         }
-        println!("{}: {}", line_index + 1, cal);
+        println!("{}: {}: {}", line_index + 1, line, cal);
         calibrations[line_index] = cal.parse::<i32>().unwrap_or(0);
     }
     calibrations.iter().sum()
 }
 
 pub fn run() {
-    let file = "/Users/chandler/homelab/aoc23-rs/src/day1/part2_example.txt";
+    let file = "/Users/chandler/homelab/aoc23-rs/src/day1/input.txt";
     let input_file = Path::new(file);
     let lines = read_lines(input_file).expect("failed to read input");
 

@@ -1,6 +1,32 @@
+use lazy_static::lazy_static;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
+
+/*
+Macro lazy_static!
+- lazy_static! initializes a static variable only once at runtime.
+- required for hash maps to be static
+
+Description of below code:
+- define
+*/
+lazy_static! {
+    static ref DIGITS: HashMap<&'static str, &'static str> = {
+        let mut m = HashMap::new();
+        m.insert("one", "1");
+        m.insert("two", "2");
+        m.insert("three", "3");
+        m.insert("four", "4");
+        m.insert("five", "5");
+        m.insert("six", "6");
+        m.insert("seven", "7");
+        m.insert("eight", "8");
+        m.insert("nine", "9");
+        m
+    };
+}
 
 /*
 Function Signature:
@@ -27,6 +53,26 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
+fn string_has_number(input_string: &str) -> bool {
+    let numbers = vec![
+        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+    ];
+    numbers.contains(&input_string)
+}
+
+fn convert_to_number(input_string: &str) -> &str {
+    let numbers = vec![
+        "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+    ];
+    for n in numbers {
+        if n.contains(&input_string) {
+            println!("{}", DIGITS.get(&n).unwrap());
+            return DIGITS.get(&n).unwrap();
+        }
+    }
+    panic!("convert_to_number(input_string: &str) entered invalid state")
+}
+
 /*
 Problem:
 - each line has a calibration value
@@ -41,7 +87,7 @@ Solution:
 - loop over each line read in from the file
     - loop over each charater in string
     - create empty string "cal", where the calibration value gets assembled
-    - match each char to an integer value of 0-9
+    - match each char to an integer value of 1-9
         - if no matches found, go to next char
         - if match found, save in str that is size 2, with the first char in the str
         - if all characters have been iterated through and the length string is still only 1, add that string to itself
@@ -49,7 +95,6 @@ Solution:
 - return the final sum after all the calibration values are
 */
 fn part_one(input: &Vec<String>) -> i32 {
-    let numbers = "0123456789";
     let mut calibrations: Vec<i32> = (0..input.len()).map(|_| 0).collect();
 
     // consume the initial input
@@ -58,10 +103,10 @@ fn part_one(input: &Vec<String>) -> i32 {
 
         for (char_index, character) in line.chars().enumerate() {
             if cal.len() == 2 {
-                if numbers.contains(&character.to_string()) {
+                if character.is_numeric() {
                     cal.replace_range(1..2, &character.to_string());
                 }
-            } else if numbers.contains(&character.to_string()) {
+            } else if character.is_numeric() {
                 cal = cal + &character.to_string();
             }
 
@@ -70,9 +115,7 @@ fn part_one(input: &Vec<String>) -> i32 {
                 cal = cal + &temp;
             }
         }
-
-        let cal_int = cal.parse::<i32>().unwrap();
-        calibrations[line_index] = cal_int;
+        calibrations[line_index] = cal.parse::<i32>().unwrap_or(0);
     }
     calibrations.iter().sum()
 }
@@ -101,10 +144,51 @@ Solution:
 - return the sum as the answer
 */
 fn part_two(input: &Vec<String>) -> i32 {
-    input.len() as i32
+    let mut calibrations: Vec<i32> = (0..input.len()).map(|_| 0).collect();
+
+    for (line_index, line) in input.iter().enumerate() {
+        let mut cal = String::new();
+        let mut find_value = String::new();
+
+        for (char_index, character) in line.chars().enumerate() {
+            // if character is number, follow logic from part one
+            if character.is_numeric() {
+                find_value.clear();
+                if cal.len() == 2 {
+                    cal.replace_range(1..2, &character.to_string());
+                }
+                if cal.len() <= 1 {
+                    cal = cal + &character.to_string();
+                }
+            // if character is not numeric, implement new logic to handle the creation of a
+            } else {
+                find_value = find_value + &character.to_string();
+                if string_has_number(&find_value) {
+                    let dumb_find_value = find_value.clone();
+                    let digit = convert_to_number(&dumb_find_value);
+                    find_value.clear();
+                    if cal.len() == 2 {
+                        cal.replace_range(1..2, &digit.to_string());
+                    }
+                    if cal.len() <= 1 {
+                        cal = cal + &digit.to_string();
+                    }
+                }
+            }
+
+            if (cal.len() == 1) && (char_index + 1 == line.len()) {
+                let temp = cal.clone();
+                cal = cal + &temp;
+            }
+        }
+        println!("{}: {}", line_index + 1, cal);
+        calibrations[line_index] = cal.parse::<i32>().unwrap_or(0);
+    }
+    calibrations.iter().sum()
 }
 
-pub fn run(file: &str) {
+pub fn run() {
+    let file = "/Users/chandler/homelab/aoc23-rs/src/day1/part2_example.txt";
     let input_file = Path::new(file);
     let lines = read_lines(input_file).expect("failed to read input");
 
@@ -114,8 +198,8 @@ pub fn run(file: &str) {
         .collect::<Vec<String>>();
 
     let result_one = part_one(&input);
-    let result_two = part_two(&input);
-
     println!("Day 1 Part 1 Result: {}", result_one);
+
+    let result_two = part_two(&input);
     println!("Day 1 Part 2 Result: {}", result_two);
 }

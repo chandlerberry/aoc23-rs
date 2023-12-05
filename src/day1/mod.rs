@@ -1,4 +1,5 @@
 use aho_corasick::{AhoCorasick, Match};
+use std::env;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
@@ -12,9 +13,9 @@ where
 }
 
 fn part_one(input: &Vec<String>) -> i32 {
-    let mut calibrations: Vec<i32> = (0..input.len()).map(|_| 0).collect();
+    let mut calibrations: Vec<i32> = Vec::new();
 
-    for (line_index, line) in input.iter().enumerate() {
+    for line in input.iter() {
         let mut cal = String::new();
 
         for (char_index, character) in line.chars().enumerate() {
@@ -31,7 +32,7 @@ fn part_one(input: &Vec<String>) -> i32 {
                 cal = cal + &temp;
             }
         }
-        calibrations[line_index] = cal.parse::<i32>().unwrap_or(0);
+        calibrations.push(cal.parse::<i32>().unwrap_or(0));
     }
     calibrations.iter().sum()
 }
@@ -53,10 +54,10 @@ fn part_two(input: &Vec<String>) -> i32 {
     total
 }
 
-pub fn run() {
-    let file = "/Users/chandler/homelab/aoc23-rs/src/day1/input.txt";
-    let input_file = Path::new(file);
-    let lines = read_lines(input_file).expect("failed to read input");
+pub fn run(file: &str) {
+    let mut filepath = env::current_dir().unwrap();
+    filepath.push(file);
+    let lines = read_lines(filepath.to_str().unwrap()).expect("failed to read input");
 
     let input = lines
         .map(|line| line.expect("could not parse line"))
